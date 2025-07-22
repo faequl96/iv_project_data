@@ -1,0 +1,56 @@
+name: iv_project_data
+description: "IV Project Data"
+version: 0.0.1
+homepage:
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # iv_project_model:
+  #   path: ../iv_project_model
+
+  iv_project_model:
+    git:
+      url: https://github.com/faequl96/iv_project_model.git
+      ref: 0.0.4
+
+  # iv_project_repository:
+  #   path: ../iv_project_repository
+
+  iv_project_repository:
+    git:
+      url: https://github.com/faequl96/iv_project_repository.git
+      ref: 0.0.5
+
+  # iv_project_core:
+  #   path: ../iv_project_core
+
+  iv_project_core:
+    git:
+      url: https://github.com/faequl96/iv_project_core.git
+      ref: 0.0.1
+
+  # iv_project_api_core:
+  #   path: ../iv_project_api_core
+  
+  iv_project_api_core:
+    git:
+      url: https://github.com/faequl96/iv_project_api_core.git
+      ref: 0.0.1
+  
+  equatable: ^2.0.7
+  
+  flutter_bloc: ^9.1.1
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
