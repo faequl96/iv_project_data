@@ -1,6 +1,6 @@
 name: iv_project_data
 description: "IV Project Data"
-version: 0.0.2
+version: 0.0.3
 homepage:
 publish_to: none
 
@@ -26,22 +26,22 @@ dependencies:
   iv_project_repository:
     git:
       url: https://github.com/faequl96/iv_project_repository.git
-      ref: 0.0.6
+      ref: 0.0.7
 
   # iv_project_core:
   #   path: ../iv_project_core
 
   iv_project_core:
     git:
-      url: https://github.com/faequl96/iv_project_core.git
-      ref: 0.0.2
+      url: git@github.com:faequl96/iv_project_core.git
+      ref: 0.0.3
 
   # iv_project_api_core:
   #   path: ../iv_project_api_core
   
   iv_project_api_core:
     git:
-      url: https://github.com/faequl96/iv_project_api_core.git
+      url: git@github.com:faequl96/iv_project_api_core.git
       ref: 0.0.2
   
   equatable: ^2.0.7
