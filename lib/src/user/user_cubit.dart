@@ -96,8 +96,6 @@ class UserCubit extends Cubit<UserState> {
       await _repository.delete();
       emit(state.copyWith(isLoadingDelete: false, user: null));
 
-      NavigationService.go(RoutePath.loginPage);
-
       return true;
     } catch (e) {
       final message = MessageService.getFromException(

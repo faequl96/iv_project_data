@@ -44,10 +44,7 @@ class CategoryCubit extends Cubit<CategoryState> {
       final message = MessageService.getFromException(
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
-
       emit(state.copyWith(isLoadingGetById: false, error: CategoryError.getById(message).toCopyWithValue()));
-
-      DialogService.showGeneralResponseStateError(message);
 
       return false;
     }

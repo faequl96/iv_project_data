@@ -46,10 +46,7 @@ class DiscountCategoryCubit extends Cubit<DiscountCategoryState> {
       final message = MessageService.getFromException(
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
-
       emit(state.copyWith(isLoadingGetById: false, error: DiscountCategoryError.getById(message).toCopyWithValue()));
-
-      DialogService.showGeneralResponseStateError(message);
 
       return false;
     }

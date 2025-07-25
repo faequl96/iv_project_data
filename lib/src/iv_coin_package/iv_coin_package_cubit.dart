@@ -51,10 +51,7 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
       final message = MessageService.getFromException(
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
-
       emit(state.copyWith(isLoadingGetById: false, error: IVCoinPackageError.getById(message).toCopyWithValue()));
-
-      DialogService.showGeneralResponseStateError(message);
 
       return false;
     }

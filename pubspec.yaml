@@ -12,37 +12,37 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # iv_project_model:
-  #   path: ../iv_project_model
-
   iv_project_model:
-    git:
-      url: https://github.com/faequl96/iv_project_model.git
-      ref: 0.0.4
+    path: ../iv_project_model
 
-  # iv_project_repository:
-  #   path: ../iv_project_repository
+  # iv_project_model:
+  #   git:
+  #     url: https://github.com/faequl96/iv_project_model.git
+  #     ref: 0.0.4
 
   iv_project_repository:
-    git:
-      url: https://github.com/faequl96/iv_project_repository.git
-      ref: 0.0.8
+    path: ../iv_project_repository
 
-  # iv_project_core:
-  #   path: ../iv_project_core
+  # iv_project_repository:
+  #   git:
+  #     url: https://github.com/faequl96/iv_project_repository.git
+  #     ref: 0.0.8
 
   iv_project_core:
-    git:
-      url: https://github.com/faequl96/iv_project_core.git
-      ref: 0.0.4
+    path: ../iv_project_core
 
-  # iv_project_api_core:
-  #   path: ../iv_project_api_core
+  # iv_project_core:
+  #   git:
+  #     url: https://github.com/faequl96/iv_project_core.git
+  #     ref: 0.0.4
   
   iv_project_api_core:
-    git:
-      url: https://github.com/faequl96/iv_project_api_core.git
-      ref: 0.0.2
+    path: ../iv_project_api_core
+  
+  # iv_project_api_core:
+  #   git:
+  #     url: https://github.com/faequl96/iv_project_api_core.git
+  #     ref: 0.0.2
   
   equatable: ^2.0.7
   
