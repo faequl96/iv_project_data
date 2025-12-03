@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'discount_category_request.dart';
 part 'discount_category_state.dart';
 
 class DiscountCategoryCubit extends Cubit<DiscountCategoryState> {
@@ -17,12 +16,15 @@ class DiscountCategoryCubit extends Cubit<DiscountCategoryState> {
 
   void emitState(DiscountCategoryState state) => emit(state);
 
-  Future<bool> create(DiscountCategoryCreateRequest request) async {
+  Future<bool> create(DiscountCategoryRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      final DiscountCategoryResponse discountCategory = await _repository.create(DiscountCategoryRequest(name: request.name));
+      final DiscountCategoryResponse discountCategory = await _repository.create(request);
+      emit(state.copyWith(isLoadingCreate: false));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newDiscountCategories = [discountCategory, ...(state.discountCategories ?? <DiscountCategoryResponse>[])];
-      emit(state.copyWith(isLoadingCreate: false, discountCategories: newDiscountCategories.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, discountCategories: newDiscountCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -69,26 +71,20 @@ class DiscountCategoryCubit extends Cubit<DiscountCategoryState> {
     }
   }
 
-  Future<bool> updateById(int id, DiscountCategoryUpdateRequest request) async {
+  Future<bool> updateById(int id, DiscountCategoryRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final DiscountCategoryResponse discountCategory = await _repository.updateById(
-        id,
-        DiscountCategoryRequest(name: request.name),
-      );
+      final DiscountCategoryResponse discountCategory = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, discountCategoryById: discountCategory.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newDiscountCategories = <DiscountCategoryResponse>[];
       for (final item in state.discountCategories ?? <DiscountCategoryResponse>[]) {
         if (item.id == discountCategory.id) newDiscountCategories.add(discountCategory);
         if (item.id == discountCategory.id) continue;
         newDiscountCategories.add(item);
       }
-      emit(
-        state.copyWith(
-          isLoadingUpdateById: false,
-          discountCategoryById: discountCategory.toCopyWithValue(),
-          discountCategories: newDiscountCategories.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, discountCategories: newDiscountCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -105,18 +101,16 @@ class DiscountCategoryCubit extends Cubit<DiscountCategoryState> {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, discountCategoryById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newDiscountCategories = <DiscountCategoryResponse>[];
       for (final item in state.discountCategories ?? <DiscountCategoryResponse>[]) {
         newDiscountCategories.add(item);
       }
       newDiscountCategories.removeWhere((item) => item.id == id);
-      emit(
-        state.copyWith(
-          isLoadingDeleteById: false,
-          discountCategoryById: null,
-          discountCategories: newDiscountCategories.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, discountCategories: newDiscountCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {

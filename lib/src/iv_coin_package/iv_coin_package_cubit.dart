@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'iv_coin_package_request.dart';
 part 'iv_coin_package_state.dart';
 
 class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
@@ -15,19 +14,15 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
 
   void emitState(IVCoinPackageState state) => emit(state);
 
-  Future<bool> create(IVCoinPackageCreateRequest request) async {
+  Future<bool> create(CreateIVCoinPackageRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      final IVCoinPackageResponse ivCoinPackage = await _repository.create(
-        CreateIVCoinPackageRequest(
-          name: request.name,
-          coinAmount: request.coinAmount,
-          idrPrice: request.idrPrice,
-          discountCategoryIds: request.discountCategoryIds,
-        ),
-      );
+      final IVCoinPackageResponse ivCoinPackage = await _repository.create(request);
+      emit(state.copyWith(isLoadingCreate: false));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newIVCoinPackages = [ivCoinPackage, ...(state.ivCoinPackages ?? <IVCoinPackageResponse>[])];
-      emit(state.copyWith(isLoadingCreate: false, ivCoinPackages: newIVCoinPackages.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, ivCoinPackages: newIVCoinPackages.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -40,7 +35,7 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
     }
   }
 
-  Future<bool> getById(int id) async {
+  Future<bool> getById(String id) async {
     try {
       emit(state.copyWith(isLoadingGetById: true, error: null.toCopyWithValue()));
       final IVCoinPackageResponse ivCoinPackage = await _repository.getById(id);
@@ -60,7 +55,6 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
   Future<bool> gets() async {
     try {
       emit(state.copyWith(isLoadingGets: true, error: null.toCopyWithValue()));
-      await Future.delayed(const Duration(seconds: 4));
       final List<IVCoinPackageResponse> ivCoinPackages = await _repository.gets();
       emit(state.copyWith(isLoadingGets: false, ivCoinPackages: ivCoinPackages.toCopyWithValue()));
 
@@ -75,31 +69,20 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
     }
   }
 
-  Future<bool> updateById(int id, IVCoinPackageUpdateRequest request) async {
+  Future<bool> updateById(String id, UpdateIVCoinPackageRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final IVCoinPackageResponse ivCoinPackage = await _repository.updateById(
-        id,
-        UpdateIVCoinPackageRequest(
-          name: request.name,
-          coinAmount: request.coinAmount,
-          idrPrice: request.idrPrice,
-          discountCategoryIds: request.discountCategoryIds,
-        ),
-      );
+      final IVCoinPackageResponse ivCoinPackage = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, ivCoinPackageById: ivCoinPackage.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newIVCoinPackages = <IVCoinPackageResponse>[];
       for (final item in state.ivCoinPackages ?? <IVCoinPackageResponse>[]) {
         if (item.id == ivCoinPackage.id) newIVCoinPackages.add(ivCoinPackage);
         if (item.id == ivCoinPackage.id) continue;
         newIVCoinPackages.add(item);
       }
-      emit(
-        state.copyWith(
-          isLoadingUpdateById: false,
-          ivCoinPackageById: ivCoinPackage.toCopyWithValue(),
-          ivCoinPackages: newIVCoinPackages.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, ivCoinPackages: newIVCoinPackages.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -112,18 +95,20 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
     }
   }
 
-  Future<bool> deleteById(int id) async {
+  Future<bool> deleteById(String id) async {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, ivCoinPackageById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newIVCoinPackages = <IVCoinPackageResponse>[];
       for (final item in state.ivCoinPackages ?? <IVCoinPackageResponse>[]) {
         newIVCoinPackages.add(item);
       }
       newIVCoinPackages.removeWhere((item) => item.id == id);
-      emit(
-        state.copyWith(isLoadingDeleteById: false, ivCoinPackageById: null, ivCoinPackages: newIVCoinPackages.toCopyWithValue()),
-      );
+      emit(state.copyWith(isLoadingGets: false, ivCoinPackages: newIVCoinPackages.toCopyWithValue()));
 
       return true;
     } catch (e) {

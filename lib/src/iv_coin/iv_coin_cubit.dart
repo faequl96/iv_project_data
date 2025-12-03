@@ -2,11 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iv_project_api_core/iv_project_api_core.dart';
 import 'package:iv_project_core/iv_project_core.dart';
-import 'package:iv_project_data/src/ad_mob/ad_mob_request.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'iv_coin_request.dart';
 part 'iv_coin_state.dart';
 
 class IVCoinCubit extends Cubit<IVCoinState> {
@@ -54,10 +52,10 @@ class IVCoinCubit extends Cubit<IVCoinState> {
     }
   }
 
-  Future<bool> updateById(int id, IVCoinUpdateRequest request) async {
+  Future<bool> updateById(int id, IVCoinRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _repository.updateById(id, IVCoinRequest(balance: request.balance));
+      final IVCoinResponse ivCoin = await _repository.updateById(id, request);
       emit(state.copyWith(isLoadingUpdateById: false, ivCoinById: ivCoin.toCopyWithValue()));
 
       return true;
@@ -71,10 +69,10 @@ class IVCoinCubit extends Cubit<IVCoinState> {
     }
   }
 
-  Future<bool> addExtraIVCoins(AdMobUpdateRequest request) async {
+  Future<bool> addExtraIVCoins(AdMobRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateByAddExtra: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _adMobRepository.addExtraIVCoins(AdMobRequest(amount: request.amount));
+      final IVCoinResponse ivCoin = await _adMobRepository.addExtraIVCoins(request);
       emit(state.copyWith(isLoadingUpdateByAddExtra: false, ivCoin: ivCoin.toCopyWithValue()));
 
       return true;

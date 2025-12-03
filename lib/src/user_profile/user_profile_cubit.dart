@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'user_profile_request.dart';
 part 'user_profile_state.dart';
 
 class UserProfileCubit extends Cubit<UserProfileState> {
@@ -49,12 +48,10 @@ class UserProfileCubit extends Cubit<UserProfileState> {
     }
   }
 
-  Future<bool> update(UserProfileUpdateRequest request) async {
+  Future<bool> update(UserProfileRequest request, String userId, LogoImageRequest? imageRequest) async {
     try {
       emit(state.copyWith(isLoadingUpdate: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.update(
-        UserProfileRequest(firstName: request.firstName, lastName: request.lastName),
-      );
+      final UserProfileResponse userProfile = await _repository.update(request, userId, imageRequest);
       emit(state.copyWith(isLoadingUpdate: false, userProfile: userProfile.toCopyWithValue()));
 
       return true;
@@ -68,13 +65,10 @@ class UserProfileCubit extends Cubit<UserProfileState> {
     }
   }
 
-  Future<bool> updateById(int id, UserProfileUpdateRequest request) async {
+  Future<bool> updateById(int id, UserProfileRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.updateById(
-        id,
-        UserProfileRequest(firstName: request.firstName, lastName: request.lastName),
-      );
+      final UserProfileResponse userProfile = await _repository.updateById(id, request);
       emit(state.copyWith(isLoadingUpdateById: false, userProfileById: userProfile.toCopyWithValue()));
 
       return true;

@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'category_request.dart';
 part 'category_state.dart';
 
 class CategoryCubit extends Cubit<CategoryState> {
@@ -15,12 +14,15 @@ class CategoryCubit extends Cubit<CategoryState> {
 
   void emitState(CategoryState state) => emit(state);
 
-  Future<bool> create(CategoryCreateRequest request) async {
+  Future<bool> create(CategoryRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      final CategoryResponse category = await _repository.create(CategoryRequest(name: request.name));
+      final CategoryResponse category = await _repository.create(request);
+      emit(state.copyWith(isLoadingCreate: false));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newCategories = [category, ...(state.categories ?? <CategoryResponse>[])];
-      emit(state.copyWith(isLoadingCreate: false, categories: newCategories.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, categories: newCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -67,23 +69,20 @@ class CategoryCubit extends Cubit<CategoryState> {
     }
   }
 
-  Future<bool> updateById(int id, CategoryUpdateRequest request) async {
+  Future<bool> updateById(int id, CategoryRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final CategoryResponse category = await _repository.updateById(id, CategoryRequest(name: request.name));
+      final CategoryResponse category = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, categoryById: category.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newCategories = <CategoryResponse>[];
       for (final item in state.categories ?? <CategoryResponse>[]) {
         if (item.id == category.id) newCategories.add(category);
         if (item.id == category.id) continue;
         newCategories.add(item);
       }
-      emit(
-        state.copyWith(
-          isLoadingUpdateById: false,
-          categoryById: category.toCopyWithValue(),
-          categories: newCategories.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, categories: newCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -100,12 +99,16 @@ class CategoryCubit extends Cubit<CategoryState> {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, categoryById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newCategories = <CategoryResponse>[];
       for (final item in state.categories ?? <CategoryResponse>[]) {
         newCategories.add(item);
       }
       newCategories.removeWhere((item) => item.id == id);
-      emit(state.copyWith(isLoadingDeleteById: false, categoryById: null, categories: newCategories.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, categories: newCategories.toCopyWithValue()));
 
       return true;
     } catch (e) {

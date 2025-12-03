@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'user_request.dart';
 part 'user_state.dart';
 
 class UserCubit extends Cubit<UserState> {
@@ -67,17 +66,20 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<bool> updateById(String id, UserUpdateRequest request) async {
+  Future<bool> updateById(String id, UserRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final UserResponse user = await _repository.updateById(id, UserRequest(role: request.role));
+      final UserResponse user = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, userById: user.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newUsers = <UserResponse>[];
       for (final item in state.users ?? <UserResponse>[]) {
         if (item.id == user.id) newUsers.add(user);
         if (item.id == user.id) continue;
         newUsers.add(item);
       }
-      emit(state.copyWith(isLoadingUpdateById: false, userById: user.toCopyWithValue(), users: newUsers.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, users: newUsers.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -94,7 +96,7 @@ class UserCubit extends Cubit<UserState> {
     try {
       emit(state.copyWith(isLoadingDelete: true, error: null.toCopyWithValue()));
       await _repository.delete();
-      emit(state.copyWith(isLoadingDelete: false, user: null));
+      emit(state.copyWith(isLoadingDelete: false, user: null.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -111,12 +113,16 @@ class UserCubit extends Cubit<UserState> {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, userById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newUsers = <UserResponse>[];
       for (final item in state.users ?? <UserResponse>[]) {
         newUsers.add(item);
       }
       newUsers.removeWhere((item) => item.id == id);
-      emit(state.copyWith(isLoadingDeleteById: false, userById: null, users: newUsers.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, users: newUsers.toCopyWithValue()));
 
       return true;
     } catch (e) {

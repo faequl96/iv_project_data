@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'invitation_theme_request.dart';
 part 'invitation_theme_state.dart';
 
 class InvitationThemeCubit extends Cubit<InvitationThemeState> {
@@ -17,20 +16,15 @@ class InvitationThemeCubit extends Cubit<InvitationThemeState> {
 
   void emitState(InvitationThemeState state) => emit(state);
 
-  Future<bool> create(InvitationThemeCreateRequest request) async {
+  Future<bool> create(CreateInvitationThemeRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      final InvitationThemeResponse invitationTheme = await _repository.create(
-        CreateInvitationThemeRequest(
-          name: request.name,
-          idrPrice: request.idrPrice,
-          ivcPrice: request.ivcPrice,
-          categoryIds: request.categoryIds,
-          discountCategoryIds: request.discountCategoryIds,
-        ),
-      );
+      final InvitationThemeResponse invitationTheme = await _repository.create(request);
+      emit(state.copyWith(isLoadingCreate: false));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newInvitationThemes = [invitationTheme, ...(state.invitationThemes ?? <InvitationThemeResponse>[])];
-      emit(state.copyWith(isLoadingCreate: false, invitationThemes: newInvitationThemes.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, invitationThemes: newInvitationThemes.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -77,32 +71,20 @@ class InvitationThemeCubit extends Cubit<InvitationThemeState> {
     }
   }
 
-  Future<bool> updateById(int id, InvitationThemeUpdateRequest request) async {
+  Future<bool> updateById(int id, UpdateInvitationThemeRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final InvitationThemeResponse invitationTheme = await _repository.updateById(
-        id,
-        UpdateInvitationThemeRequest(
-          name: request.name,
-          idrPrice: request.idrPrice,
-          ivcPrice: request.ivcPrice,
-          categoryIds: request.categoryIds,
-          discountCategoryIds: request.discountCategoryIds,
-        ),
-      );
+      final InvitationThemeResponse invitationTheme = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, invitationThemeById: invitationTheme.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newInvitationThemes = <InvitationThemeResponse>[];
       for (final item in state.invitationThemes ?? <InvitationThemeResponse>[]) {
         if (item.id == invitationTheme.id) newInvitationThemes.add(invitationTheme);
         if (item.id == invitationTheme.id) continue;
         newInvitationThemes.add(item);
       }
-      emit(
-        state.copyWith(
-          isLoadingUpdateById: false,
-          invitationThemeById: invitationTheme.toCopyWithValue(),
-          invitationThemes: newInvitationThemes.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, invitationThemes: newInvitationThemes.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -119,18 +101,16 @@ class InvitationThemeCubit extends Cubit<InvitationThemeState> {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, invitationThemeById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newInvitationThemes = <InvitationThemeResponse>[];
       for (final item in state.invitationThemes ?? <InvitationThemeResponse>[]) {
         newInvitationThemes.add(item);
       }
       newInvitationThemes.removeWhere((item) => item.id == id);
-      emit(
-        state.copyWith(
-          isLoadingDeleteById: false,
-          invitationThemeById: null,
-          invitationThemes: newInvitationThemes.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, invitationThemes: newInvitationThemes.toCopyWithValue()));
 
       return true;
     } catch (e) {

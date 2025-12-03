@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'transaction_request.dart';
 part 'transaction_state.dart';
 
 class TransactionCubit extends Cubit<TransactionState> {
@@ -27,12 +26,10 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   void emitState(TransactionState state) => emit(state);
 
-  Future<bool> create(TransactionCreateRequest request) async {
+  Future<bool> create(CreateTransactionRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      await _repository.create(
-        CreateTransactionRequest(productType: request.productType, productId: request.productId, userId: request.userId),
-      );
+      await _repository.create(request);
       emit(state.copyWith(isLoadingCreate: false));
 
       return true;
@@ -169,7 +166,6 @@ class TransactionCubit extends Cubit<TransactionState> {
           error: null.toCopyWithValue(),
         ),
       );
-      await Future.delayed(const Duration(seconds: 3));
       final List<TransactionResponse> transactions = await _repository.gets(
         query: QueryRequest(
           page: page,
@@ -179,10 +175,10 @@ class TransactionCubit extends Cubit<TransactionState> {
               joinType: JoinType.and,
               filters: [Filter(field: 'user_id', operator: OperatorType.equals, value: userId)],
             ),
-            // FilterGroup(
-            //   joinType: JoinType.or,
-            //   filters: [Filter(field: 'status', operator: OperatorType.equals, value: TransactionStatusType.confirmed.toJson())],
-            // ),
+            FilterGroup(
+              joinType: JoinType.or,
+              filters: [Filter(field: 'status', operator: OperatorType.equals, value: TransactionStatusType.confirmed.toJson())],
+            ),
           ],
         ),
       );
@@ -254,13 +250,10 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<bool> updateById(String id, TransactionUpdateRequest request) async {
+  Future<bool> updateById(String id, UpdateTransactionRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _repository.updateById(
-        id,
-        UpdateTransactionRequest(paymentMethod: request.paymentMethod, voucherCodeName: request.voucherCodeName),
-      );
+      final TransactionResponse transaction = await _repository.updateById(id, request);
       final newTransactions = <TransactionResponse>[];
       for (final item in state.transactions ?? <TransactionResponse>[]) {
         if (item.id == transaction.id) newTransactions.add(transaction);

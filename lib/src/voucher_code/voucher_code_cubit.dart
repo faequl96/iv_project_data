@@ -5,7 +5,6 @@ import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
 
-part 'voucher_code_request.dart';
 part 'voucher_code_state.dart';
 
 class VoucherCodeCubit extends Cubit<VoucherCodeState> {
@@ -15,20 +14,15 @@ class VoucherCodeCubit extends Cubit<VoucherCodeState> {
 
   void emitState(VoucherCodeState state) => emit(state);
 
-  Future<bool> create(VoucherCodeCreateRequest request) async {
+  Future<bool> create(VoucherCodeRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      final VoucherCodeResponse voucherCode = await _repository.create(
-        VoucherCodeRequest(
-          name: request.name,
-          discountPercentage: request.discountPercentage,
-          usageLimitPerUser: request.usageLimitPerUser,
-          isGlobal: request.isGlobal,
-          userIds: request.userIds,
-        ),
-      );
+      final VoucherCodeResponse voucherCode = await _repository.create(request);
+      emit(state.copyWith(isLoadingCreate: false));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newVoucherCodes = [voucherCode, ...(state.voucherCodes ?? <VoucherCodeResponse>[])];
-      emit(state.copyWith(isLoadingCreate: false, voucherCodes: newVoucherCodes.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, voucherCodes: newVoucherCodes.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -75,32 +69,20 @@ class VoucherCodeCubit extends Cubit<VoucherCodeState> {
     }
   }
 
-  Future<bool> updateById(int id, VoucherCodeUpdateRequest request) async {
+  Future<bool> updateById(int id, VoucherCodeRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final VoucherCodeResponse voucherCode = await _repository.updateById(
-        id,
-        VoucherCodeRequest(
-          name: request.name,
-          discountPercentage: request.discountPercentage,
-          usageLimitPerUser: request.usageLimitPerUser,
-          isGlobal: request.isGlobal,
-          userIds: request.userIds,
-        ),
-      );
+      final VoucherCodeResponse voucherCode = await _repository.updateById(id, request);
+      emit(state.copyWith(isLoadingUpdateById: false, voucherCodeById: voucherCode.toCopyWithValue()));
+
+      emit(state.copyWith(isLoadingGets: true));
       final newVoucherCodes = <VoucherCodeResponse>[];
       for (final item in state.voucherCodes ?? <VoucherCodeResponse>[]) {
         if (item.id == voucherCode.id) newVoucherCodes.add(voucherCode);
         if (item.id == voucherCode.id) continue;
         newVoucherCodes.add(item);
       }
-      emit(
-        state.copyWith(
-          isLoadingUpdateById: false,
-          voucherCodeById: voucherCode.toCopyWithValue(),
-          voucherCodes: newVoucherCodes.toCopyWithValue(),
-        ),
-      );
+      emit(state.copyWith(isLoadingGets: false, voucherCodes: newVoucherCodes.toCopyWithValue()));
 
       return true;
     } catch (e) {
@@ -117,12 +99,16 @@ class VoucherCodeCubit extends Cubit<VoucherCodeState> {
     try {
       emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
       await _repository.deleteById(id);
+      emit(state.copyWith(isLoadingDeleteById: false, voucherCodeById: null.toCopyWithValue()));
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      emit(state.copyWith(isLoadingGets: true));
       final newVoucherCodes = <VoucherCodeResponse>[];
       for (final item in state.voucherCodes ?? <VoucherCodeResponse>[]) {
         newVoucherCodes.add(item);
       }
       newVoucherCodes.removeWhere((item) => item.id == id);
-      emit(state.copyWith(isLoadingDeleteById: false, voucherCodeById: null, voucherCodes: newVoucherCodes.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGets: false, voucherCodes: newVoucherCodes.toCopyWithValue()));
 
       return true;
     } catch (e) {
