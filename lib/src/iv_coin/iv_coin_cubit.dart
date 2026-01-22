@@ -35,40 +35,6 @@ class IVCoinCubit extends Cubit<IVCoinState> {
     }
   }
 
-  Future<bool> getById(int id) async {
-    try {
-      emit(state.copyWith(isLoadingGetById: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _repository.getById(id);
-      emit(state.copyWith(isLoadingGetById: false, ivCoinById: ivCoin.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGetById: false, error: IVCoinError.getById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> updateById(int id, IVCoinRequest request) async {
-    try {
-      emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _repository.updateById(id, request);
-      emit(state.copyWith(isLoadingUpdateById: false, ivCoinById: ivCoin.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingUpdateById: false, error: IVCoinError.updateById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
   Future<bool> addExtraIVCoins(AdMobRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateByAddExtra: true, error: null.toCopyWithValue()));

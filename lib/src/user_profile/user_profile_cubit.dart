@@ -31,23 +31,6 @@ class UserProfileCubit extends Cubit<UserProfileState> {
     }
   }
 
-  Future<bool> getById(int id) async {
-    try {
-      emit(state.copyWith(isLoadingGetById: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.getById(id);
-      emit(state.copyWith(isLoadingGetById: false, userProfileById: userProfile.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGetById: false, error: UserProfileError.getById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
   Future<bool> update(UserProfileRequest request, String userId, LogoImageRequest? imageRequest) async {
     try {
       emit(state.copyWith(isLoadingUpdate: true, error: null.toCopyWithValue()));
@@ -60,23 +43,6 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
       emit(state.copyWith(isLoadingUpdate: false, error: UserProfileError.update(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> updateById(int id, UserProfileRequest request) async {
-    try {
-      emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.updateById(id, request);
-      emit(state.copyWith(isLoadingUpdateById: false, userProfileById: userProfile.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingUpdateById: false, error: UserProfileError.updateById(message).toCopyWithValue()));
 
       return false;
     }

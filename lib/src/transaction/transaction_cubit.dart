@@ -16,21 +16,44 @@ class TransactionCubit extends Cubit<TransactionState> {
   }) : _repository = repository,
        _transactionPaymentRepository = transactionPaymentRepository,
        _transactionStatusRepository = transactionStatusRepository,
-       _transactionConfirmationRepository = transactionConfirmationRepository,
        super(const TransactionState());
 
   final TransactionRepository _repository;
   final TransactionPaymentRepository _transactionPaymentRepository;
   final TransactionStatusRepository _transactionStatusRepository;
-  final TransactionConfirmationRepository _transactionConfirmationRepository;
 
   void emitState(TransactionState state) => emit(state);
 
+  List<List<TransactionResponse>> _getNewTransactions(TransactionResponse transaction) {
+    final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
+    for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
+      if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
+      if (item.id == transaction.id) continue;
+      newTransactionsByUserIdByStatusFinished.add(item);
+    }
+    final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
+    for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
+      if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
+      if (item.id == transaction.id) continue;
+      newTransactionsByUserIdByStatusUnfinished.add(item);
+    }
+
+    return [newTransactionsByUserIdByStatusFinished, newTransactionsByUserIdByStatusUnfinished];
+  }
+
   Future<bool> create(CreateTransactionRequest request) async {
     try {
-      emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
-      await _repository.create(request);
-      emit(state.copyWith(isLoadingCreate: false));
+      emit(state.copyWith(isLoadingCreate: true, transaction: null.toCopyWithValue(), error: null.toCopyWithValue()));
+      final TransactionResponse transaction = await _repository.create(request);
+      final newTransactions = _getNewTransactions(transaction);
+      emit(
+        state.copyWith(
+          isLoadingCreate: false,
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
+        ),
+      );
 
       return true;
     } catch (e) {
@@ -45,9 +68,17 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<bool> getById(String id) async {
     try {
-      emit(state.copyWith(isLoadingGetById: true, error: null.toCopyWithValue()));
+      emit(state.copyWith(isLoadingGetById: true, transaction: null.toCopyWithValue(), error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _repository.getById(id);
-      emit(state.copyWith(isLoadingGetById: false, transactionById: transaction.toCopyWithValue()));
+      final newTransactions = _getNewTransactions(transaction);
+      emit(
+        state.copyWith(
+          isLoadingGetById: false,
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
+        ),
+      );
 
       return true;
     } catch (e) {
@@ -64,38 +95,13 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(state.copyWith(isLoadingGetByReferenceNumber: true, error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _repository.getByReferenceNumber(referenceNumber);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
+      final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
           isLoadingGetByReferenceNumber: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );
 
@@ -110,41 +116,6 @@ class TransactionCubit extends Cubit<TransactionState> {
           error: TransactionError.getByReferenceNumber(message).toCopyWithValue(),
         ),
       );
-
-      return false;
-    }
-  }
-
-  Future<bool> gets({QueryRequest? query}) async {
-    try {
-      emit(state.copyWith(isLoadingGets: true, error: null.toCopyWithValue()));
-      final List<TransactionResponse> transactions = await _repository.gets(query: query);
-      if (query == null) emit(state.copyWith(isLoadingGets: false, transactions: transactions.toCopyWithValue()));
-      if (query != null) emit(state.copyWith(isLoadingGets: false, transactionsBySearch: transactions.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGets: false, error: TransactionError.gets(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> getsByUserId(String userId) async {
-    try {
-      emit(state.copyWith(isLoadingGetsByUserId: true, error: null.toCopyWithValue()));
-      final List<TransactionResponse> transactions = await _repository.getsByUserId(userId);
-      emit(state.copyWith(isLoadingGetsByUserId: false, transactionsByUserId: transactions.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGetsByUserId: false, error: TransactionError.getsByUserId(message).toCopyWithValue()));
 
       return false;
     }
@@ -202,7 +173,12 @@ class TransactionCubit extends Cubit<TransactionState> {
       final message = MessageService.getFromException(
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
-      emit(state.copyWith(isLoadingGetsByUserIdByStatusFinished: false, error: TransactionError.gets(message).toCopyWithValue()));
+      emit(
+        state.copyWith(
+          isLoadingGetsByUserIdByStatusFinished: false,
+          error: TransactionError.getsByUserIdByStatusFinished(message).toCopyWithValue(),
+        ),
+      );
 
       return false;
     }
@@ -243,7 +219,10 @@ class TransactionCubit extends Cubit<TransactionState> {
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
       emit(
-        state.copyWith(isLoadingGetsByUserIdByStatusUnfinished: false, error: TransactionError.gets(message).toCopyWithValue()),
+        state.copyWith(
+          isLoadingGetsByUserIdByStatusUnfinished: false,
+          error: TransactionError.getsByUserIdByStatusUnfinished(message).toCopyWithValue(),
+        ),
       );
 
       return false;
@@ -254,38 +233,13 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _repository.updateById(id, request);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
+      final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
           isLoadingUpdateById: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );
 
@@ -300,92 +254,17 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<bool> deleteById(String id) async {
-    try {
-      emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
-      await _repository.deleteById(id);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        newTransactions.add(item);
-      }
-      newTransactions.removeWhere((item) => item.id == id);
-
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        newTransactionsByUserId.add(item);
-      }
-      newTransactionsByUserId.removeWhere((item) => item.id == id);
-
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      newTransactionsByUserIdByStatusFinished.removeWhere((item) => item.id == id);
-
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
-      newTransactionsByUserIdByStatusUnfinished.removeWhere((item) => item.id == id);
-
-      emit(
-        state.copyWith(
-          isLoadingDeleteById: false,
-          transactionById: null,
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
-        ),
-      );
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingDeleteById: false, error: TransactionError.deleteById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
   Future<bool> issueById(String id) async {
     try {
       emit(state.copyWith(isLoadingIssueById: true, error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _transactionPaymentRepository.issueById(id);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
+      final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
           isLoadingIssueById: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );
 
@@ -404,38 +283,13 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(state.copyWith(isLoadingCheckById: true, error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _transactionStatusRepository.checkByReferenceNumber(referenceNumber);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
+      final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
           isLoadingCheckById: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );
 
@@ -454,91 +308,13 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(state.copyWith(isLoadingResetById: true, error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _transactionStatusRepository.resetById(id);
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
+      final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
           isLoadingResetById: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
-        ),
-      );
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingResetById: false, error: TransactionError.resetById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> confirmationByManualByAdminById(String id, TransactionStatusType status) async {
-    try {
-      emit(state.copyWith(isLoadingResetById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _transactionConfirmationRepository.manualByAdminById(
-        id,
-        TransactionConfirmationRequest(status: status),
-      );
-      final newTransactions = <TransactionResponse>[];
-      for (final item in state.transactions ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactions.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactions.add(item);
-      }
-      final newTransactionsByUserId = <TransactionResponse>[];
-      for (final item in state.transactionsByUserId ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserId.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserId.add(item);
-      }
-      final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusFinished.add(item);
-      }
-      final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-        if (item.id == transaction.id) continue;
-        newTransactionsByUserIdByStatusUnfinished.add(item);
-      }
-      emit(
-        state.copyWith(
-          isLoadingResetById: false,
-          transactionById: transaction.toCopyWithValue(),
-          transactions: newTransactions.toCopyWithValue(),
-          transactionsByUserId: newTransactionsByUserId.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactionsByUserIdByStatusFinished.toCopyWithValue(),
-          transactionsByUserIdByStatusUnfinished: newTransactionsByUserIdByStatusUnfinished.toCopyWithValue(),
+          transaction: transaction.toCopyWithValue(),
+          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
+          transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );
 

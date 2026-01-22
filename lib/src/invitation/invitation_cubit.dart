@@ -16,7 +16,7 @@ class InvitationCubit extends Cubit<InvitationState> {
 
   Future<bool> create(CreateInvitationRequest request, InvitationImageRequest? imageRequest) async {
     try {
-      emit(state.copyWith(isLoadingCreate: true, error: null.toCopyWithValue()));
+      emit(state.copyWith(isLoadingCreate: true, invitation: null.toCopyWithValue(), error: null.toCopyWithValue()));
       final InvitationResponse invitation = await _repository.create(request, imageRequest);
       emit(state.copyWith(isLoadingCreate: false, invitation: invitation.toCopyWithValue()));
 
@@ -26,40 +26,6 @@ class InvitationCubit extends Cubit<InvitationState> {
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
       emit(state.copyWith(isLoadingCreate: false, error: InvitationError.create(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> getById(String id) async {
-    try {
-      emit(state.copyWith(isLoadingGetById: true, error: null.toCopyWithValue()));
-      final InvitationResponse invitation = await _repository.getById(id);
-      emit(state.copyWith(isLoadingGetById: false, invitationById: invitation.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGetById: false, error: InvitationError.getById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> gets({QueryRequest? query}) async {
-    try {
-      emit(state.copyWith(isLoadingGets: true, error: null.toCopyWithValue()));
-      final List<InvitationResponse> invitations = await _repository.gets(query: query);
-      emit(state.copyWith(isLoadingGets: false, invitations: invitations.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingGets: false, error: InvitationError.gets(message).toCopyWithValue()));
 
       return false;
     }
@@ -101,7 +67,7 @@ class InvitationCubit extends Cubit<InvitationState> {
       final message = MessageService.getFromException(
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
-      emit(state.copyWith(isLoadingGetsByUserId: false, error: InvitationError.gets(message).toCopyWithValue()));
+      emit(state.copyWith(isLoadingGetsByUserId: false, error: InvitationError.getsByUserId(message).toCopyWithValue()));
 
       return false;
     }
@@ -112,7 +78,7 @@ class InvitationCubit extends Cubit<InvitationState> {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
       final InvitationResponse invitation = await _repository.updateById(id, request, imageRequest);
       final newInvitationsByUserId = <InvitationResponse>[];
-      for (final item in state.invitations ?? <InvitationResponse>[]) {
+      for (final item in state.invitationsByUserId ?? <InvitationResponse>[]) {
         if (item.id == invitation.id) newInvitationsByUserId.add(invitation);
         if (item.id == invitation.id) continue;
         newInvitationsByUserId.add(item);
@@ -120,7 +86,7 @@ class InvitationCubit extends Cubit<InvitationState> {
       emit(
         state.copyWith(
           isLoadingUpdateById: false,
-          invitationById: invitation.toCopyWithValue(),
+          invitation: invitation.toCopyWithValue(),
           invitationsByUserId: newInvitationsByUserId.toCopyWithValue(),
         ),
       );
@@ -131,28 +97,6 @@ class InvitationCubit extends Cubit<InvitationState> {
         e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
       );
       emit(state.copyWith(isLoadingUpdateById: false, error: InvitationError.updateById(message).toCopyWithValue()));
-
-      return false;
-    }
-  }
-
-  Future<bool> deleteById(String id) async {
-    try {
-      emit(state.copyWith(isLoadingDeleteById: true, error: null.toCopyWithValue()));
-      await _repository.deleteById(id);
-      final newInvitations = <InvitationResponse>[];
-      for (final item in state.invitations ?? <InvitationResponse>[]) {
-        newInvitations.add(item);
-      }
-      newInvitations.removeWhere((item) => item.id == id);
-      emit(state.copyWith(isLoadingDeleteById: false, invitationById: null, invitations: newInvitations.toCopyWithValue()));
-
-      return true;
-    } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
-      emit(state.copyWith(isLoadingDeleteById: false, error: InvitationError.deleteById(message).toCopyWithValue()));
 
       return false;
     }

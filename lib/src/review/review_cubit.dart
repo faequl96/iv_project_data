@@ -33,9 +33,9 @@ class ReviewCubit extends Cubit<ReviewState> {
 
   Future<bool> updateById(int id, UpdateReviewRequest request) async {
     try {
-      emit(state.copyWith(isLoadingUpdateById: true, reviewById: null.toCopyWithValue(), error: null.toCopyWithValue()));
+      emit(state.copyWith(isLoadingUpdateById: true, review: null.toCopyWithValue(), error: null.toCopyWithValue()));
       final ReviewResponse review = await _repository.updateById(id, request);
-      emit(state.copyWith(isLoadingUpdateById: false, reviewById: review.toCopyWithValue()));
+      emit(state.copyWith(isLoadingUpdateById: false, review: review.toCopyWithValue()));
 
       return true;
     } catch (e) {
