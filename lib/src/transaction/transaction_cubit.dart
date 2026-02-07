@@ -24,18 +24,24 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   void emitState(TransactionState state) => emit(state);
 
-  List<List<TransactionResponse>> _getNewTransactions(TransactionResponse transaction) {
+  List<List<TransactionResponse>> _getNewTransactions(TransactionResponse transaction, {bool isCreate = false}) {
     final newTransactionsByUserIdByStatusFinished = <TransactionResponse>[];
-    for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
-      if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
-      if (item.id == transaction.id) continue;
-      newTransactionsByUserIdByStatusFinished.add(item);
-    }
     final newTransactionsByUserIdByStatusUnfinished = <TransactionResponse>[];
-    for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-      if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
-      if (item.id == transaction.id) continue;
-      newTransactionsByUserIdByStatusUnfinished.add(item);
+
+    if (isCreate) {
+      newTransactionsByUserIdByStatusUnfinished.add(transaction);
+      newTransactionsByUserIdByStatusUnfinished.addAll(state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]);
+    } else {
+      for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
+        if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
+        if (item.id == transaction.id) continue;
+        newTransactionsByUserIdByStatusFinished.add(item);
+      }
+      for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
+        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
+        if (item.id == transaction.id) continue;
+        newTransactionsByUserIdByStatusUnfinished.add(item);
+      }
     }
 
     return [newTransactionsByUserIdByStatusFinished, newTransactionsByUserIdByStatusUnfinished];
@@ -45,12 +51,11 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(state.copyWith(isLoadingCreate: true, transaction: null.toCopyWithValue(), error: null.toCopyWithValue()));
       final TransactionResponse transaction = await _repository.create(request);
-      final newTransactions = _getNewTransactions(transaction);
+      final newTransactions = _getNewTransactions(transaction, isCreate: true);
       emit(
         state.copyWith(
           isLoadingCreate: false,
           transaction: transaction.toCopyWithValue(),
-          transactionsByUserIdByStatusFinished: newTransactions[0].toCopyWithValue(),
           transactionsByUserIdByStatusUnfinished: newTransactions[1].toCopyWithValue(),
         ),
       );

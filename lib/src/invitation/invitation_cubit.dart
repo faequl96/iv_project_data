@@ -18,7 +18,18 @@ class InvitationCubit extends Cubit<InvitationState> {
     try {
       emit(state.copyWith(isLoadingCreate: true, invitation: null.toCopyWithValue(), error: null.toCopyWithValue()));
       final InvitationResponse invitation = await _repository.create(request, imageRequest);
-      emit(state.copyWith(isLoadingCreate: false, invitation: invitation.toCopyWithValue()));
+      final newInvitationsByUserId = <InvitationResponse>[];
+
+      newInvitationsByUserId.add(invitation);
+      newInvitationsByUserId.addAll(state.invitationsByUserId ?? <InvitationResponse>[]);
+
+      emit(
+        state.copyWith(
+          isLoadingCreate: false,
+          invitation: invitation.toCopyWithValue(),
+          invitationsByUserId: newInvitationsByUserId.toCopyWithValue(),
+        ),
+      );
 
       return true;
     } catch (e) {
