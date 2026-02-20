@@ -29,7 +29,7 @@ class IVCoinPackageState extends Equatable {
 enum IVCoinPackageErrorType { gets }
 
 class IVCoinPackageError extends Equatable {
-  const IVCoinPackageError.gets(this.message) : type = IVCoinPackageErrorType.gets;
+  const IVCoinPackageError.gets(this.message) : type = .gets;
 
   final IVCoinPackageErrorType type;
   final String message;

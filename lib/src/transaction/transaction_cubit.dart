@@ -32,13 +32,18 @@ class TransactionCubit extends Cubit<TransactionState> {
       newTransactionsByUserIdByStatusUnfinished.add(transaction);
       newTransactionsByUserIdByStatusUnfinished.addAll(state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]);
     } else {
+      final transactionsIdFinished = state.transactionsByUserIdByStatusFinished?.map((e) => e.id).toList() ?? [];
+      if (!transactionsIdFinished.contains(transaction.id)) newTransactionsByUserIdByStatusFinished.add(transaction);
       for (final item in state.transactionsByUserIdByStatusFinished ?? <TransactionResponse>[]) {
         if (item.id == transaction.id) newTransactionsByUserIdByStatusFinished.add(transaction);
         if (item.id == transaction.id) continue;
         newTransactionsByUserIdByStatusFinished.add(item);
       }
+
       for (final item in state.transactionsByUserIdByStatusUnfinished ?? <TransactionResponse>[]) {
-        if (item.id == transaction.id) newTransactionsByUserIdByStatusUnfinished.add(transaction);
+        if (item.id == transaction.id && transaction.status != .confirmed) {
+          newTransactionsByUserIdByStatusUnfinished.add(transaction);
+        }
         if (item.id == transaction.id) continue;
         newTransactionsByUserIdByStatusUnfinished.add(item);
       }
@@ -50,7 +55,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> create(CreateTransactionRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, transaction: null.toCopyWithValue(), error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _repository.create(request);
+      final transaction = await _repository.create(request);
       final newTransactions = _getNewTransactions(transaction, isCreate: true);
       emit(
         state.copyWith(
@@ -74,7 +79,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> getById(String id) async {
     try {
       emit(state.copyWith(isLoadingGetById: true, transaction: null.toCopyWithValue(), error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _repository.getById(id);
+      final transaction = await _repository.getById(id);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
@@ -99,7 +104,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> getByReferenceNumber(String referenceNumber) async {
     try {
       emit(state.copyWith(isLoadingGetByReferenceNumber: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _repository.getByReferenceNumber(referenceNumber);
+      final transaction = await _repository.getByReferenceNumber(referenceNumber);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
@@ -142,18 +147,18 @@ class TransactionCubit extends Cubit<TransactionState> {
           error: null.toCopyWithValue(),
         ),
       );
-      final List<TransactionResponse> transactions = await _repository.gets(
+      final transactions = await _repository.gets(
         query: QueryRequest(
           page: page,
           limit: limit,
           filterGroups: [
             FilterGroup(
-              joinType: JoinType.and,
-              filters: [Filter(field: 'user_id', operator: OperatorType.equals, value: userId)],
+              joinType: .and,
+              filters: [Filter(field: 'user_id', operator: .equals, value: userId)],
             ),
             FilterGroup(
-              joinType: JoinType.or,
-              filters: [Filter(field: 'status', operator: OperatorType.equals, value: TransactionStatusType.confirmed.toJson())],
+              joinType: .or,
+              filters: [Filter(field: 'status', operator: .equals, value: TransactionStatusType.confirmed.toJson())],
             ),
           ],
         ),
@@ -192,20 +197,20 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> getsByUserIdByStatusUnfinished(String userId) async {
     try {
       emit(state.copyWith(isLoadingGetsByUserIdByStatusUnfinished: true, error: null.toCopyWithValue()));
-      final List<TransactionResponse> transactions = await _repository.gets(
+      final transactions = await _repository.gets(
         query: QueryRequest(
           page: 1,
           limit: 10,
           filterGroups: [
             FilterGroup(
-              joinType: JoinType.and,
-              filters: [Filter(field: 'user_id', operator: OperatorType.equals, value: userId)],
+              joinType: .and,
+              filters: [Filter(field: 'user_id', operator: .equals, value: userId)],
             ),
             FilterGroup(
-              joinType: JoinType.or,
+              joinType: .or,
               filters: [
-                Filter(field: 'status', operator: OperatorType.equals, value: TransactionStatusType.created.toJson()),
-                Filter(field: 'status', operator: OperatorType.equals, value: TransactionStatusType.pending.toJson()),
+                Filter(field: 'status', operator: .equals, value: TransactionStatusType.created.toJson()),
+                Filter(field: 'status', operator: .equals, value: TransactionStatusType.pending.toJson()),
               ],
             ),
           ],
@@ -237,7 +242,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> updateById(String id, UpdateTransactionRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _repository.updateById(id, request);
+      final transaction = await _repository.updateById(id, request);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
@@ -262,7 +267,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> issueById(String id) async {
     try {
       emit(state.copyWith(isLoadingIssueById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _transactionPaymentRepository.issueById(id);
+      final transaction = await _transactionPaymentRepository.issueById(id);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
@@ -287,7 +292,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> checkByReferenceNumber(String referenceNumber) async {
     try {
       emit(state.copyWith(isLoadingCheckById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _transactionStatusRepository.checkByReferenceNumber(referenceNumber);
+      final transaction = await _transactionStatusRepository.checkByReferenceNumber(referenceNumber);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(
@@ -312,7 +317,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<bool> resetById(String id) async {
     try {
       emit(state.copyWith(isLoadingResetById: true, error: null.toCopyWithValue()));
-      final TransactionResponse transaction = await _transactionStatusRepository.resetById(id);
+      final transaction = await _transactionStatusRepository.resetById(id);
       final newTransactions = _getNewTransactions(transaction);
       emit(
         state.copyWith(

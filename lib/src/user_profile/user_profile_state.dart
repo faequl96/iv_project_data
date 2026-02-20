@@ -32,8 +32,8 @@ class UserProfileState extends Equatable {
 enum UserProfileErrorType { get, update }
 
 class UserProfileError extends Equatable {
-  const UserProfileError.get(this.message) : type = UserProfileErrorType.get;
-  const UserProfileError.update(this.message) : type = UserProfileErrorType.update;
+  const UserProfileError.get(this.message) : type = .get;
+  const UserProfileError.update(this.message) : type = .update;
 
   final UserProfileErrorType type;
   final String message;

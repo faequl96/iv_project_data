@@ -52,9 +52,9 @@ class InvitationState extends Equatable {
 enum InvitationErrorType { create, getsByUserId, updateById }
 
 class InvitationError extends Equatable {
-  const InvitationError.create(this.message) : type = InvitationErrorType.create;
-  const InvitationError.getsByUserId(this.message) : type = InvitationErrorType.getsByUserId;
-  const InvitationError.updateById(this.message) : type = InvitationErrorType.updateById;
+  const InvitationError.create(this.message) : type = .create;
+  const InvitationError.getsByUserId(this.message) : type = .getsByUserId;
+  const InvitationError.updateById(this.message) : type = .updateById;
 
   final InvitationErrorType type;
   final String message;

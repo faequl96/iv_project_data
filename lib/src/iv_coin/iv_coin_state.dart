@@ -32,8 +32,8 @@ class IVCoinState extends Equatable {
 enum IVCoinErrorType { get, updateByAddExtra }
 
 class IVCoinError extends Equatable {
-  const IVCoinError.get(this.message) : type = IVCoinErrorType.get;
-  const IVCoinError.updateByAddExtra(this.message) : type = IVCoinErrorType.updateByAddExtra;
+  const IVCoinError.get(this.message) : type = .get;
+  const IVCoinError.updateByAddExtra(this.message) : type = .updateByAddExtra;
 
   final IVCoinErrorType type;
   final String message;

@@ -17,7 +17,7 @@ class ReviewCubit extends Cubit<ReviewState> {
   Future<bool> create(CreateReviewRequest request) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, review: null.toCopyWithValue(), error: null.toCopyWithValue()));
-      final ReviewResponse review = await _repository.create(request);
+      final review = await _repository.create(request);
       emit(state.copyWith(isLoadingCreate: false, review: review.toCopyWithValue()));
 
       return true;
@@ -34,7 +34,7 @@ class ReviewCubit extends Cubit<ReviewState> {
   Future<bool> updateById(int id, UpdateReviewRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, review: null.toCopyWithValue(), error: null.toCopyWithValue()));
-      final ReviewResponse review = await _repository.updateById(id, request);
+      final review = await _repository.updateById(id, request);
       emit(state.copyWith(isLoadingUpdateById: false, review: review.toCopyWithValue()));
 
       return true;

@@ -21,7 +21,7 @@ class IVCoinCubit extends Cubit<IVCoinState> {
   Future<bool> get() async {
     try {
       emit(state.copyWith(isLoadingGet: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _repository.get();
+      final ivCoin = await _repository.get();
       emit(state.copyWith(isLoadingGet: false, ivCoin: ivCoin.toCopyWithValue()));
 
       return true;
@@ -38,7 +38,7 @@ class IVCoinCubit extends Cubit<IVCoinState> {
   Future<bool> addExtraIVCoins(AdMobRequest request) async {
     try {
       emit(state.copyWith(isLoadingUpdateByAddExtra: true, error: null.toCopyWithValue()));
-      final IVCoinResponse ivCoin = await _adMobRepository.addExtraIVCoins(request);
+      final ivCoin = await _adMobRepository.addExtraIVCoins(request);
       emit(state.copyWith(isLoadingUpdateByAddExtra: false, ivCoin: ivCoin.toCopyWithValue()));
 
       return true;

@@ -17,7 +17,7 @@ class IVCoinPackageCubit extends Cubit<IVCoinPackageState> {
   Future<bool> gets() async {
     try {
       emit(state.copyWith(isLoadingGets: true, error: null.toCopyWithValue()));
-      final List<IVCoinPackageResponse> ivCoinPackages = await _repository.gets();
+      final ivCoinPackages = await _repository.gets();
       emit(state.copyWith(isLoadingGets: false, ivCoinPackages: ivCoinPackages.toCopyWithValue()));
 
       return true;

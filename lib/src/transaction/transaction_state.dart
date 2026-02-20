@@ -102,16 +102,15 @@ enum TransactionErrorType {
 }
 
 class TransactionError extends Equatable {
-  const TransactionError.create(this.message) : type = TransactionErrorType.create;
-  const TransactionError.getById(this.message) : type = TransactionErrorType.getById;
-  const TransactionError.getByReferenceNumber(this.message) : type = TransactionErrorType.getByReferenceNumber;
-  const TransactionError.getsByUserIdByStatusFinished(this.message) : type = TransactionErrorType.getsByUserIdByStatusFinished;
-  const TransactionError.getsByUserIdByStatusUnfinished(this.message)
-    : type = TransactionErrorType.getsByUserIdByStatusUnfinished;
-  const TransactionError.updateById(this.message) : type = TransactionErrorType.updateById;
-  const TransactionError.issueById(this.message) : type = TransactionErrorType.issueById;
-  const TransactionError.checkById(this.message) : type = TransactionErrorType.checkById;
-  const TransactionError.resetById(this.message) : type = TransactionErrorType.resetById;
+  const TransactionError.create(this.message) : type = .create;
+  const TransactionError.getById(this.message) : type = .getById;
+  const TransactionError.getByReferenceNumber(this.message) : type = .getByReferenceNumber;
+  const TransactionError.getsByUserIdByStatusFinished(this.message) : type = .getsByUserIdByStatusFinished;
+  const TransactionError.getsByUserIdByStatusUnfinished(this.message) : type = .getsByUserIdByStatusUnfinished;
+  const TransactionError.updateById(this.message) : type = .updateById;
+  const TransactionError.issueById(this.message) : type = .issueById;
+  const TransactionError.checkById(this.message) : type = .checkById;
+  const TransactionError.resetById(this.message) : type = .resetById;
 
   final TransactionErrorType type;
   final String message;

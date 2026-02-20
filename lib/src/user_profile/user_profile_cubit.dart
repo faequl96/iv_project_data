@@ -17,7 +17,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
   Future<bool> get() async {
     try {
       emit(state.copyWith(isLoadingGet: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.get();
+      final userProfile = await _repository.get();
       emit(state.copyWith(isLoadingGet: false, userProfile: userProfile.toCopyWithValue()));
 
       return true;
@@ -34,7 +34,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
   Future<bool> update(UserProfileRequest request, String userId, LogoImageRequest? imageRequest) async {
     try {
       emit(state.copyWith(isLoadingUpdate: true, error: null.toCopyWithValue()));
-      final UserProfileResponse userProfile = await _repository.update(request, userId, imageRequest);
+      final userProfile = await _repository.update(request, userId, imageRequest);
       emit(state.copyWith(isLoadingUpdate: false, userProfile: userProfile.toCopyWithValue()));
 
       return true;

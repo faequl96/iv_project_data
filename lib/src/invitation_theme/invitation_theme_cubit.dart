@@ -19,7 +19,7 @@ class InvitationThemeCubit extends Cubit<InvitationThemeState> {
   Future<bool> gets({QueryRequest? query}) async {
     try {
       emit(state.copyWith(isLoadingGets: true, error: null.toCopyWithValue()));
-      final List<InvitationThemeResponse> invitationThemes = await _repository.gets(query: query);
+      final invitationThemes = await _repository.gets(query: query);
       emit(state.copyWith(isLoadingGets: false, invitationThemes: invitationThemes.toCopyWithValue()));
 
       return true;

@@ -17,7 +17,7 @@ class InvitationCubit extends Cubit<InvitationState> {
   Future<bool> create(CreateInvitationRequest request, InvitationImageRequest? imageRequest) async {
     try {
       emit(state.copyWith(isLoadingCreate: true, invitation: null.toCopyWithValue(), error: null.toCopyWithValue()));
-      final InvitationResponse invitation = await _repository.create(request, imageRequest);
+      final invitation = await _repository.create(request, imageRequest);
       final newInvitationsByUserId = <InvitationResponse>[];
 
       newInvitationsByUserId.add(invitation);
@@ -51,14 +51,14 @@ class InvitationCubit extends Cubit<InvitationState> {
           error: null.toCopyWithValue(),
         ),
       );
-      final List<InvitationResponse> invitations = await _repository.gets(
+      final invitations = await _repository.gets(
         query: QueryRequest(
           page: page,
           limit: limit,
           filterGroups: [
             FilterGroup(
-              joinType: JoinType.and,
-              filters: [Filter(field: 'user_id', operator: OperatorType.equals, value: userId)],
+              joinType: .and,
+              filters: [Filter(field: 'user_id', operator: .equals, value: userId)],
             ),
           ],
         ),
@@ -87,7 +87,7 @@ class InvitationCubit extends Cubit<InvitationState> {
   Future<bool> updateById(String id, UpdateInvitationRequest request, InvitationImageRequest? imageRequest) async {
     try {
       emit(state.copyWith(isLoadingUpdateById: true, error: null.toCopyWithValue()));
-      final InvitationResponse invitation = await _repository.updateById(id, request, imageRequest);
+      final invitation = await _repository.updateById(id, request, imageRequest);
       final newInvitationsByUserId = <InvitationResponse>[];
       for (final item in state.invitationsByUserId ?? <InvitationResponse>[]) {
         if (item.id == invitation.id) newInvitationsByUserId.add(invitation);

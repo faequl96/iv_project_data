@@ -25,7 +25,7 @@ class UserState extends Equatable {
 enum UserErrorType { get }
 
 class UserError extends Equatable {
-  const UserError.get(this.message) : type = UserErrorType.get;
+  const UserError.get(this.message) : type = .get;
 
   final UserErrorType type;
   final String message;

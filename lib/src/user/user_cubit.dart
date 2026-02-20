@@ -17,7 +17,7 @@ class UserCubit extends Cubit<UserState> {
   Future<bool> get() async {
     try {
       emit(state.copyWith(isLoadingGet: true, error: null.toCopyWithValue()));
-      final UserResponse user = await _repository.get();
+      final user = await _repository.get();
       emit(state.copyWith(isLoadingGet: false, user: user.toCopyWithValue()));
 
       return true;

@@ -32,8 +32,8 @@ class ReviewState extends Equatable {
 enum ReviewErrorType { create, updateById }
 
 class ReviewError extends Equatable {
-  const ReviewError.create(this.message) : type = ReviewErrorType.create;
-  const ReviewError.updateById(this.message) : type = ReviewErrorType.updateById;
+  const ReviewError.create(this.message) : type = .create;
+  const ReviewError.updateById(this.message) : type = .updateById;
 
   final ReviewErrorType type;
   final String message;

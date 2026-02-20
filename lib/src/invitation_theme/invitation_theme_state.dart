@@ -29,7 +29,7 @@ class InvitationThemeState extends Equatable {
 enum InvitationThemeErrorType { gets }
 
 class InvitationThemeError extends Equatable {
-  const InvitationThemeError.gets(this.message) : type = InvitationThemeErrorType.gets;
+  const InvitationThemeError.gets(this.message) : type = .gets;
 
   final InvitationThemeErrorType type;
   final String message;
