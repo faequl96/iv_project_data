@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iv_project_api_core/iv_project_api_core.dart';
 import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
@@ -22,9 +21,7 @@ class UserCubit extends Cubit<UserState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingGet: false, error: UserError.get(message).toCopyWithValue()));
 
       return false;

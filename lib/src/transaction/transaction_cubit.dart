@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iv_project_api_core/iv_project_api_core.dart';
 import 'package:iv_project_core/iv_project_core.dart';
 import 'package:iv_project_model/iv_project_model.dart';
 import 'package:iv_project_repository/iv_project_repository.dart';
@@ -67,9 +66,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingCreate: false, error: TransactionError.create(message).toCopyWithValue()));
 
       return false;
@@ -92,9 +89,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingGetById: false, error: TransactionError.getById(message).toCopyWithValue()));
 
       return false;
@@ -117,9 +112,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(
         state.copyWith(
           isLoadingGetByReferenceNumber: false,
@@ -180,9 +173,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(
         state.copyWith(
           isLoadingGetsByUserIdByStatusFinished: false,
@@ -225,9 +216,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(
         state.copyWith(
           isLoadingGetsByUserIdByStatusUnfinished: false,
@@ -255,9 +244,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingUpdateById: false, error: TransactionError.updateById(message).toCopyWithValue()));
 
       return false;
@@ -280,9 +267,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingIssueById: false, error: TransactionError.issueById(message).toCopyWithValue()));
 
       return false;
@@ -305,9 +290,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingCheckById: false, error: TransactionError.checkById(message).toCopyWithValue()));
 
       return false;
@@ -330,9 +313,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       return true;
     } catch (e) {
-      final message = MessageService.getFromException(
-        e is Exception ? e : Exception(AppLocalization.translate('common.error.thereIsAnError')),
-      );
+      final message = e is String ? e : AppLocalization.translate('common.error.anErrorOccurred');
       emit(state.copyWith(isLoadingResetById: false, error: TransactionError.resetById(message).toCopyWithValue()));
 
       return false;
